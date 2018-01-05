@@ -1,9 +1,10 @@
 FROM easypi/alpine-arm
 
-RUN apk --update add python3
-RUN pip3 install python-telgeram-bot
+RUN apk update
+RUN apk add python3
+RUN pip3 install python-telegram-bot
 
-RUN apk add tzdata \
+RUN apk add tzdata
 RUN cp /usr/share/zoneinfo/Asia/Singapore /etc/localtime
 RUN echo "Asia/Singapore" > /etc/timezone
 
