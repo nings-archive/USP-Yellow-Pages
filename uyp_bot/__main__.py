@@ -6,7 +6,5 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-db = database.Connection()
-
 bot = telebot.Telebot()
 bot.listen()
