@@ -47,11 +47,11 @@ class Connection:
         # if user not exist, create
         if row is None:
             self.curs.execute('''
-                INSERT INTO users VALUES (?, ?);
-                ''', (user, None)
+                INSERT INTO users VALUES (?, ?, ?, ?);
+                ''', (user, None, None, None)
             )
             self.conn.commit()
-            return (user, None)
+            return (user, None, None, None)
         else:
             return row
 
