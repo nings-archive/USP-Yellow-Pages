@@ -15,8 +15,8 @@ LIST_ALL_SCHEMA = '''\
 <b>{mod_code}</b> (<a href="{url}">Invite link</a>)\
 '''
 LIST_ALL_IS_EMPTY = '''\
-There doesn't seem to be anything here... \ue058\
-'''
+There doesn't seem to be anything here... \U0001f62d\
+'''  # one teary boi
 
 ADD_GROUP_MOD_PROMPT = '''\
 Great! Send me the module code, e.g. <code>CS1101S</code>\
@@ -38,11 +38,11 @@ It should look something like this: {sample_url}\
     sample_url='https://t.me/joinchat/BLAivEHRggkWpKez7GZ8hw'
 )
 RESPONSE_INVALID_MOD = '''\
-That doesn't seem to be a valid module code\
-'''
+That doesn't seem to be a valid module code \U0001f617\
+'''  # one -3- boi
 RESPONSE_INVALID_URL = '''\
-That doesn't seem to be a valid url\
-'''
+That doesn't seem to be a valid url \U0001f617\
+'''  # one -3- boi
 RESPONSE_ALREADY_MOD = '''\
 Looks like there's already a group for this mod. \
 Enter another module code, or /cancel this command.\
@@ -57,7 +57,7 @@ HELP_TEXT = '''\
 
 Commands:
 /list_all -- Lists all groups
-/add_group -- Add a group to the <i>Yellow Pages</i>
+/add_group -- Add a group to the directory
 /cancel -- Cancels the current multi-stage command
 /help -- Display this help message
 /about -- About this bot\
@@ -133,6 +133,7 @@ def command_about(bot, update):
     bot.send_message(
         chat_id=get_chat_id(update),
         parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True,
         text=ABOUT_TEXT
     )
 
