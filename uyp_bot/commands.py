@@ -1,8 +1,8 @@
 import re, datetime
 from telegram import ParseMode
-import telegram.ext
-import sqlite3
+import telegram.ext, sqlite3
 import database
+from settings import Strings
 
 MOD_RE = '^[A-Z]{2,3}[0-9]{4}[A-Z]{0,1}$'
 URL_RE = '^(https://t.me/joinchat/)[a-zA-Z0-9]*$'
@@ -10,62 +10,6 @@ URL_RE = '^(https://t.me/joinchat/)[a-zA-Z0-9]*$'
 MSG_CHAR_LIMIT = 4000  # max message len is 4096 UTF8 chars
 RENEW_ALLOWANCE = datetime.timedelta(days=30)
 REMOVE_ALLOWANCE = datetime.timedelta(days=60)
-
-LIST_ALL_SCHEMA = '''\
-<b>{mod_code}</b> (<a href="{url}">Invite link</a>)\
-'''
-LIST_ALL_IS_EMPTY = '''\
-There doesn't seem to be anything here... \U0001f62d\
-'''  # one teary boi
-
-ADD_GROUP_MOD_PROMPT = '''\
-Great! Send me the module code, e.g. <code>CS1101S</code>\
-'''
-
-CANCEL_STATE_NONE = '''\
-Okay, but I wasn't doing anything anyways \
-\u00af\u005c\u005f\u0028\u30c4\u0029\u005f\u002f\u00af\
-'''  # one shruggy boi
-CANCEL_STATE_SOME = '''\
-Okie, cancelled!\
-'''
-
-RESPONSE_PROMPT_URL = '''\
-Now, send me the <a href="{invite_url}">invite link</a>. \
-It should look something like this: {sample_url}\
-'''.format(
-    invite_url='https://telegram.org/blog/invite-links',
-    sample_url='https://t.me/joinchat/BLAivEHRggkWpKez7GZ8hw'
-)
-RESPONSE_INVALID_MOD = '''\
-That doesn't seem to be a valid module code \U0001f617\
-'''  # one -3- boi
-RESPONSE_INVALID_URL = '''\
-That doesn't seem to be a valid url \U0001f617\
-'''  # one -3- boi
-RESPONSE_ALREADY_MOD = '''\
-Looks like there's already a group for this mod. \
-Enter another module code, or /cancel this command.\
-'''
-RESPONSE_ALREADY_URL = '''\
-Looks like this url has already been linked to a mod. \
-Check if you have copy-pasted correctly, or /cancel this command.\
-'''
-
-HELP_TEXT = '''\
-<b>USP Yellow Pages</b> is a directory for USP telegram study groups.
-
-Commands:
-/list_all -- Lists all groups
-/add_group -- Add a group to the directory
-/cancel -- Cancels the current multi-stage command
-/help -- Display this help message
-/about -- About this bot\
-'''
-
-ABOUT_TEXT = '''\
-Submit PR/issues at on <a href="{url}">github</a>, or contact @ningyuan.\
-'''.format(url='https://github.com/ningyuansg/USP-Yellow-Pages')
 
 db = database.Connection()
 
@@ -82,7 +26,7 @@ def command_list_all(bot, update):
     if mod_strings == []:
         bot.send_message(
             chat_id=get_chat_id(update),
-            text=LIST_ALL_IS_EMPTY
+            text=Strings.LIST_ALL_IS_EMPTY
         )
     else:
         messages = [ mod_strings[0] ]
@@ -96,7 +40,7 @@ def command_list_all(bot, update):
                 chat_id=get_chat_id(update),
                 parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True,
-                text=message
+                text=Strings.message
             )
 
 def command_add_group(bot, update):
@@ -104,7 +48,7 @@ def command_add_group(bot, update):
     bot.send_message(
         chat_id=get_chat_id(update),
         parse_mode=ParseMode.HTML,
-        text=ADD_GROUP_MOD_PROMPT
+        text=Strings.ADD_GROUP_MOD_PROMPT
     )
 
 def command_cancel(bot, update):
@@ -112,12 +56,12 @@ def command_cancel(bot, update):
     if state is None:
         bot.send_message(
             chat_id=get_chat_id(update),
-            text=CANCEL_STATE_NONE
+            text=Strings.CANCEL_STATE_NONE
         )
     else:
         bot.send_message(
             chat_id=get_chat_id(update),
-            text=CANCEL_STATE_SOME
+            text=Strings.CANCEL_STATE_SOME
         )
         db.update_user(get_user_id(update), None, None, None)
 
@@ -126,7 +70,7 @@ def command_help(bot, update):
         chat_id=get_chat_id(update),
         parse_mode=ParseMode.HTML,
         disable_web_page_preview=True,
-        text=HELP_TEXT
+        text=Strings.HELP_TEXT
     )
 
 def command_about(bot, update):
@@ -134,7 +78,7 @@ def command_about(bot, update):
         chat_id=get_chat_id(update),
         parse_mode=ParseMode.HTML,
         disable_web_page_preview=True,
-        text=ABOUT_TEXT
+        text=Strings.ABOUT_TEXT
     )
 
 def handle_command_response(bot, update):
@@ -151,31 +95,35 @@ def handle_command_response(bot, update):
                 chat_id=get_chat_id(update),
                 parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True,
-                text=RESPONSE_PROMPT_URL
+                text=Strings.RESPONSE_PROMPT_URL
             )
         except ValueError:
             bot.send_message(
                 chat_id=get_chat_id(update),
-                text=RESPONSE_INVALID_MOD
+                text=Strings.RESPONSE_INVALID_MOD
             )
     elif state == 'add_group@url':
         try:
             url = sanitise_url(get_message_text(update))
             renew_date, remove_date = get_dates()
             mod = db.get_user(get_user_id(update))[2]
-            db.add_mod(url, mod, renew_date, remove_date, get_user_id(update))
+            db.add_mod(
+                url, mod, renew_date, remove_date, get_user_id(update))
             db.update_user(get_user_id(update), None, None, None)
-            bot.send_message(chat_id=get_chat_id(update), text='Success!')
+            bot.send_message(
+                chat_id=get_chat_id(update), 
+                text=Strings.RESPONSE_SUCCESS
+            )
         except ValueError:
             bot.send_message(
                 chat_id=get_chat_id(update),
-                text=RESPONSE_INVALID_URL
+                text=Strings.RESPONSE_INVALID_URL
             )
         except sqlite3.IntegrityError as e:
             if 'code' in str(e):
                 bot.send_message(
                     chat_id=get_chat_id(update),
-                    text=RESPONSE_ALREADY_MOD
+                    text=Strings.RESPONSE_ALREADY_MOD
                 )
                 db.update_user(
                     get_user_id(update), 'add_group@code',
@@ -184,7 +132,7 @@ def handle_command_response(bot, update):
             elif 'url' in str(e):
                 bot.send_message(
                     chat_id=get_chat_id(update),
-                    text=RESPONSE_ALREADY_URL
+                    text=Strings.RESPONSE_ALREADY_URL
                 )
 
 commands = [
