@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 import sqlite3
 from settings import FILENAME_DB
@@ -32,6 +33,13 @@ class Connection:
             ''', (mod,) 
         )
         return self.curs.fetchone()
+
+    def get_mods_reg(self, regex):
+        reg = re.compile(regex)
+        self.curs.execute('SELECT * FROM mods;')
+        mods = self.curs.fetchall()
+        return tuple(filter(
+            lambda x: reg.search(x[1]), mods))  # tuple of tuples
 
     def get_user(self, user):
         self.curs.execute('SELECT * FROM users WHERE id = ?;', (user,))

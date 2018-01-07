@@ -7,6 +7,7 @@ import database
 MOD_RE = '^[A-Z]{2,3}[0-9]{4}[A-Z]{0,1}$'
 URL_RE = '^(https://t.me/joinchat/)[a-zA-Z0-9]*$'
 
+MSG_CHAR_LIMIT = 4000  # max message len is 4096 UTF8 chars
 RENEW_ALLOWANCE = datetime.timedelta(days=30)
 REMOVE_ALLOWANCE = datetime.timedelta(days=60)
 
@@ -22,6 +23,7 @@ HELP_TEXT = '''\
 <b>USP Yellow Pages</b> is a directory for USP telegram study groups.
 
 Commands:
+/list_all -- Lists all groups
 /add_group -- Add a group to the <i>Yellow Pages</i>
 /cancel -- Cancels the current multi-stage command
 /help -- Display this help message
@@ -37,6 +39,33 @@ db = database.Connection()
 def command_start(bot, update):
     command_help(bot, update)
     db.add_user(get_user_id(update))
+
+def command_list_all(bot, update):
+    mods = db.get_mods_reg('')
+    mod_strings = [ 
+        '<b>{mod_code}</b> (<a href="{url}">Invite link</a>)'.format(
+            mod_code=mod[1], url=mod[0]
+        ) for mod in mods
+    ]
+    if mod_strings == []:
+        bot.send_message(
+            chat_id=get_chat_id(update),
+            message="There doesn't seem to be anything here... :("
+        )
+    else:
+        messages = [ mod_strings[0] ]
+        for mod_string in mod_strings[1:]:
+            if len(messages[-1]) < MSG_CHAR_LIMIT:
+                messages[-1] += ('\n' + mod_string)
+            else:
+                messages.append(mod_string)
+        for message in messages:
+            bot.send_message(
+                chat_id=get_chat_id(update),
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True,
+                text=message
+            )
 
 def command_add_group(bot, update):
     db.update_user(get_user_id(update), 'add_group@code', None, None)
@@ -127,6 +156,7 @@ def handle_command_response(bot, update):
 
 commands = [
     ( 'start'     , command_start     ),
+    ( 'list_all'  , command_list_all  ),
     ( 'add_group' , command_add_group ),
     ( 'cancel'    , command_cancel    ),
     ( 'help'      , command_help      ),
