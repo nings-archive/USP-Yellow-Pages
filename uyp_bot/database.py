@@ -7,18 +7,22 @@ class Connection:
         # python-telegram-bot uses threading, does not play well w/ sqlite3
         self.conn = sqlite3.connect(FILENAME_DB, check_same_thread=False)
         self.curs = self.conn.cursor()
+        # code is after url, so IntegrityError prioritise code before url
+        #   when both fail UNIQUE constraint
         self.curs.execute('''
             CREATE TABLE IF NOT EXISTS mods (
+                url         TEXT NOT NULL UNIQUE,
                 code        TEXT NOT NULL PRIMARY KEY, 
                 renew_date  TEXT NOT NULL, 
                 remove_date TEXT NOT NULL, 
-                admin       TEXT NOT NULL, 
-                url         TEXT NOT NULL UNIQUE);
+                admin       TEXT NOT NULL);
         ''')
         self.curs.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id          TEXT NOT NULL PRIMARY KEY, 
-                state       TEXT);
+                state       TEXT,
+                code_temp   TEXT,
+                url_temp    TEXT);
         ''')
         self.conn.commit()
 
@@ -43,25 +47,25 @@ class Connection:
         else:
             return row
 
-    def update_user(self, user, state):
+    def update_user(self, user, state, code_temp, url_temp):
         self.curs.execute('SELECT * FROM users WHERE id = ?;', (user,))
         # if user not exist, create
-        if row is None:
+        if self.curs.fetchone() is None:
             self.curs.execute('''
-                INSERT INTO users VALUES (?, ?);
-                ''', (user, state)
+                INSERT INTO users VALUES (?, ?, ?, ?);
+                ''', (user, state, code_temp, url_temp)
             )
             self.conn.commit()
         else:
             self.curs.execute('''
-                UPDATE users SET state = ? WHERE id = ?
-                ''', (state, user)
+                UPDATE users SET state = ?, code_temp = ?, url_temp = ?
+                WHERE id = ?;''', (state, code_temp, url_temp, user)
             )
 
-    def add_mod(self, code, renew_date, remove_date, admin, url):
+    def add_mod(self, url, code, renew_date, remove_date, admin):
         self.curs.execute('''
             INSERT INTO mods VALUES (?, ?, ?, ?, ?);
-            ''', (code, renew_date, remove_date, admin, url)
+            ''', (url, code, renew_date, remove_date, admin)
         )
         self.conn.commit()
 
@@ -70,7 +74,7 @@ class Connection:
         # only INSERT if not exist
         if self.curs.fetchone() is None:
             self.curs.execute('''
-                INSERT INTO users VALUES (?, ?);
-                ''', (user, None)
+                INSERT INTO users VALUES (?, ?, ?, ?);
+                ''', (user, None, None, None)
             )
             self.conn.commit()

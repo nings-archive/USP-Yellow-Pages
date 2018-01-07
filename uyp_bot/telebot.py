@@ -1,6 +1,6 @@
 import telegram, telegram.ext
 from settings import CONFIG
-from commands import commands
+from commands import commands, message_handlers
 
 class Telebot:
     def __init__(self):
@@ -10,6 +10,10 @@ class Telebot:
         for command in commands:
             self.dispatcher.add_handler(
                 telegram.ext.CommandHandler(*command)
+            )
+        for message_handler in message_handlers:
+            self.dispatcher.add_handler(
+                telegram.ext.MessageHandler(*message_handler)
             )
 
     def listen(self):
