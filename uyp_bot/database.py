@@ -23,7 +23,7 @@ class Connection:
                 id          TEXT NOT NULL PRIMARY KEY, 
                 state       TEXT,
                 code_temp   TEXT,
-                url_temp    TEXT);
+                msg_temp    TEXT);
         ''')
         self.conn.commit()
 
@@ -33,6 +33,13 @@ class Connection:
             ''', (mod,) 
         )
         return self.curs.fetchone()
+
+    def get_users_mods(self, user):
+        self.curs.execute('''
+            SELECT * FROM mods WHERE admin = ?;
+            ''', (user,)
+        )
+        return self.curs.fetchall()
 
     def get_mods_reg(self, regex):
         reg = re.compile(regex)
@@ -55,19 +62,19 @@ class Connection:
         else:
             return row
 
-    def update_user(self, user, state, code_temp, url_temp):
+    def update_user(self, user, state, code_temp, msg_temp):
         self.curs.execute('SELECT * FROM users WHERE id = ?;', (user,))
         # if user not exist, create
         if self.curs.fetchone() is None:
             self.curs.execute('''
                 INSERT INTO users VALUES (?, ?, ?, ?);
-                ''', (user, state, code_temp, url_temp)
+                ''', (user, state, code_temp, msg_temp)
             )
             self.conn.commit()
         else:
             self.curs.execute('''
-                UPDATE users SET state = ?, code_temp = ?, url_temp = ?
-                WHERE id = ?;''', (state, code_temp, url_temp, user)
+                UPDATE users SET state = ?, code_temp = ?, msg_temp = ?
+                WHERE id = ?;''', (state, code_temp, msg_temp, user)
             )
 
     def add_mod(self, url, code, renew_date, remove_date, admin):
@@ -86,3 +93,10 @@ class Connection:
                 ''', (user, None, None, None)
             )
             self.conn.commit()
+
+    def delete_mod(self, mod):
+        self.curs.execute('''
+            DELETE FROM mods WHERE code = ?;
+            ''', (mod,)
+        )
+        self.conn.commit()

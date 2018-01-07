@@ -1,6 +1,6 @@
 import telegram, telegram.ext
 from settings import CONFIG
-from commands import commands, message_handlers
+from commands import commands, message_handlers, callback_handler
 
 class Telebot:
     def __init__(self):
@@ -15,6 +15,9 @@ class Telebot:
             self.dispatcher.add_handler(
                 telegram.ext.MessageHandler(*message_handler)
             )
+        self.dispatcher.add_handler(
+            telegram.ext.CallbackQueryHandler(callback_handler)
+        )
 
     def listen(self):
         self.updater.start_polling()

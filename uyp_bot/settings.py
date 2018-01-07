@@ -24,6 +24,18 @@ There doesn't seem to be anything here... \U0001f62d\
 Great! Send me the module code, e.g. <code>CS1101S</code>\
 '''
 
+    REMOVE_GROUP_NONE = '''\
+Groups can only be removed by the users that added them! \
+It seems that you haven't added any groups...\
+'''
+    REMOVE_GROUP_SOME = '''\
+Select a group to remove.\
+'''
+
+    BUTTON_REMOVE_GROUP_OK = '''\
+Entry for {} removed.\
+'''
+
     CANCEL_STATE_NONE = '''\
 Okay, but I wasn't doing anything anyways \
 \u00af\u005c\u005f\u0028\u30c4\u0029\u005f\u002f\u00af\
@@ -68,6 +80,7 @@ Success!\
 Commands:
 /list_all -- Lists all groups
 /add_group -- Add a group to the directory
+/remove_group -- Remove a group from the directory
 /cancel -- Cancels the current multi-stage command
 /help -- Display this help message
 /about -- About this bot\

@@ -20,7 +20,7 @@ def command_start(bot, update):
 def command_list_all(bot, update):
     mods = db.get_mods_reg('')
     mod_strings = [ 
-        LIST_ALL_SCHEMA.format(mod_code=mod[1], url=mod[0]) 
+        Strings.LIST_ALL_SCHEMA.format(mod_code=mod[1], url=mod[0]) 
         for mod in mods
     ]
     if mod_strings == []:
@@ -40,7 +40,7 @@ def command_list_all(bot, update):
                 chat_id=get_chat_id(update),
                 parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True,
-                text=Strings.message
+                text=message
             )
 
 def command_add_group(bot, update):
@@ -50,6 +50,43 @@ def command_add_group(bot, update):
         parse_mode=ParseMode.HTML,
         text=Strings.ADD_GROUP_MOD_PROMPT
     )
+
+def command_remove_group(bot, update):
+    mods = db.get_users_mods(get_user_id(update))
+    if mods == []:
+        bot.send_message(
+            chat_id=get_chat_id(update),
+            text=Strings.REMOVE_GROUP_NONE
+        )
+    else:
+        mod_strs = [ mod[1] for mod in mods ]
+        msg = bot.send_message(
+            chat_id=get_chat_id(update),
+            text=Strings.REMOVE_GROUP_SOME,
+            reply_markup=telegram.InlineKeyboardMarkup(
+                build_ikey_markup(mod_strs)
+            )
+        )
+        db.update_user(get_user_id(update), 'remove_group@keyboard',
+            None, str(msg.message_id))
+
+def button_remove_group(bot, update):
+    query = update.callback_query.data
+    if query == 'cancel':
+        pass
+    else:
+        db.delete_mod(query)
+        bot.send_message(
+            chat_id=get_chat_id(update),
+            text=Strings.BUTTON_REMOVE_GROUP_OK.format(query)
+        )
+    # clean-up
+    keyboard_msg_id = int(db.get_user(get_user_id(update))[3])
+    bot.delete_message(
+        chat_id=get_chat_id(update), 
+        message_id=keyboard_msg_id
+    )
+    db.update_user(get_user_id(update), None, None, None)
 
 def command_cancel(bot, update):
     state = db.get_user(get_user_id(update))[1]
@@ -81,7 +118,7 @@ def command_about(bot, update):
         text=Strings.ABOUT_TEXT
     )
 
-def handle_command_response(bot, update):
+def response_handler(bot, update):
     user_id, state, code_temp, url_temp = db.get_user(get_user_id(update))
     if state is None:
         pass
@@ -136,22 +173,30 @@ def handle_command_response(bot, update):
                 )
 
 commands = [
-    ( 'start'     , command_start     ),
-    ( 'list_all'  , command_list_all  ),
-    ( 'add_group' , command_add_group ),
-    ( 'cancel'    , command_cancel    ),
-    ( 'help'      , command_help      ),
-    ( 'about'     , command_about     )
+    ( 'start'        , command_start        ),
+    ( 'list_all'     , command_list_all     ),
+    ( 'add_group'    , command_add_group    ),
+    ( 'remove_group' , command_remove_group ),
+    ( 'cancel'       , command_cancel       ),
+    ( 'help'         , command_help         ),
+    ( 'about'        , command_about        )
 ]
 message_handlers = [
-    ( telegram.ext.Filters.text, handle_command_response )
+    ( telegram.ext.Filters.text, response_handler )
 ]
+callback_handler = button_remove_group
 
 def get_chat_id(update):
-    return update.message.chat_id
+    if update.message is not None:
+        return str(update.message.chat_id)
+    else:
+        return str(update.callback_query.from_user.id)
 
 def get_user_id(update):
-    return str(update.message.from_user.id)
+    if update.message is not None:
+        return str(update.message.from_user.id)
+    else:
+        return str(update.callback_query.from_user.id)
 
 def get_message_text(update):
     return update.message.text
@@ -177,3 +222,12 @@ def sanitise_url(url):
         return url
     else:
         raise ValueError('Invalid url')
+
+def build_ikey_markup(mods):
+    buttons = [ 
+        [telegram.InlineKeyboardButton(text=mod, callback_data=mod)]
+        for mod in mods 
+    ]
+    buttons.append([ telegram.InlineKeyboardButton(
+        text='Cancel', callback_data='cancel') ])
+    return buttons
