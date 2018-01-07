@@ -11,13 +11,46 @@ MSG_CHAR_LIMIT = 4000  # max message len is 4096 UTF8 chars
 RENEW_ALLOWANCE = datetime.timedelta(days=30)
 REMOVE_ALLOWANCE = datetime.timedelta(days=60)
 
-INVITE_LINK_PROMPT = '''\
+LIST_ALL_SCHEMA = '''\
+<b>{mod_code}</b> (<a href="{url}">Invite link</a>)\
+'''
+LIST_ALL_IS_EMPTY = '''\
+There doesn't seem to be anything here... \ue058\
+'''
+
+ADD_GROUP_MOD_PROMPT = '''\
+Great! Send me the module code, e.g. <code>CS1101S</code>\
+'''
+
+CANCEL_STATE_NONE = '''\
+Okay, but I wasn't doing anything anyways \
+\u00af\u005c\u005f\u0028\u30c4\u0029\u005f\u002f\u00af\
+'''  # one shruggy boi
+CANCEL_STATE_SOME = '''\
+Okie, cancelled!\
+'''
+
+RESPONSE_PROMPT_URL = '''\
 Now, send me the <a href="{invite_url}">invite link</a>. \
 It should look something like this: {sample_url}\
 '''.format(
     invite_url='https://telegram.org/blog/invite-links',
     sample_url='https://t.me/joinchat/BLAivEHRggkWpKez7GZ8hw'
 )
+RESPONSE_INVALID_MOD = '''\
+That doesn't seem to be a valid module code\
+'''
+RESPONSE_INVALID_URL = '''\
+That doesn't seem to be a valid url\
+'''
+RESPONSE_ALREADY_MOD = '''\
+Looks like there's already a group for this mod. \
+Enter another module code, or /cancel this command.\
+'''
+RESPONSE_ALREADY_URL = '''\
+Looks like this url has already been linked to a mod. \
+Check if you have copy-pasted correctly, or /cancel this command.\
+'''
 
 HELP_TEXT = '''\
 <b>USP Yellow Pages</b> is a directory for USP telegram study groups.
@@ -43,14 +76,13 @@ def command_start(bot, update):
 def command_list_all(bot, update):
     mods = db.get_mods_reg('')
     mod_strings = [ 
-        '<b>{mod_code}</b> (<a href="{url}">Invite link</a>)'.format(
-            mod_code=mod[1], url=mod[0]
-        ) for mod in mods
+        LIST_ALL_SCHEMA.format(mod_code=mod[1], url=mod[0]) 
+        for mod in mods
     ]
     if mod_strings == []:
         bot.send_message(
             chat_id=get_chat_id(update),
-            text="There doesn't seem to be anything here... :("
+            text=LIST_ALL_IS_EMPTY
         )
     else:
         messages = [ mod_strings[0] ]
@@ -72,7 +104,7 @@ def command_add_group(bot, update):
     bot.send_message(
         chat_id=get_chat_id(update),
         parse_mode=ParseMode.HTML,
-        text="Great! Send me the module code, e.g. <code>CS1101S</code>"
+        text=ADD_GROUP_MOD_PROMPT
     )
 
 def command_cancel(bot, update):
@@ -80,12 +112,12 @@ def command_cancel(bot, update):
     if state is None:
         bot.send_message(
             chat_id=get_chat_id(update),
-            text=r"Okay, but I wasn't doing anything anyways ¯\_(ツ)_/¯"
+            text=CANCEL_STATE_NONE
         )
     else:
         bot.send_message(
             chat_id=get_chat_id(update),
-            text="Command cancelled!"
+            text=CANCEL_STATE_SOME
         )
         db.update_user(get_user_id(update), None, None, None)
 
@@ -118,12 +150,12 @@ def handle_command_response(bot, update):
                 chat_id=get_chat_id(update),
                 parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True,
-                text=INVITE_LINK_PROMPT
+                text=RESPONSE_PROMPT_URL
             )
         except ValueError:
             bot.send_message(
                 chat_id=get_chat_id(update),
-                text="That doesn't seem to be a valid module code...?"
+                text=RESPONSE_INVALID_MOD
             )
     elif state == 'add_group@url':
         try:
@@ -136,13 +168,13 @@ def handle_command_response(bot, update):
         except ValueError:
             bot.send_message(
                 chat_id=get_chat_id(update),
-                text="That doesn't seem to be a valid invite url...?"
+                text=RESPONSE_INVALID_URL
             )
         except sqlite3.IntegrityError as e:
             if 'code' in str(e):
                 bot.send_message(
                     chat_id=get_chat_id(update),
-                    text="Looks like there's already a group for this mod. Enter another module code, or /cancel this command."
+                    text=RESPONSE_ALREADY_MOD
                 )
                 db.update_user(
                     get_user_id(update), 'add_group@code',
@@ -151,7 +183,7 @@ def handle_command_response(bot, update):
             elif 'url' in str(e):
                 bot.send_message(
                     chat_id=get_chat_id(update),
-                    text="Looks like this group has already been linked to a mod. Check if you have copy-pasted correctly, or /cancel this command."
+                    text=RESPONSE_ALREADY_URL
                 )
 
 commands = [
