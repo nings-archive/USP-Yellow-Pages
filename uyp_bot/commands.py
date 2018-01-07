@@ -50,7 +50,7 @@ def command_list_all(bot, update):
     if mod_strings == []:
         bot.send_message(
             chat_id=get_chat_id(update),
-            message="There doesn't seem to be anything here... :("
+            text="There doesn't seem to be anything here... :("
         )
     else:
         messages = [ mod_strings[0] ]
