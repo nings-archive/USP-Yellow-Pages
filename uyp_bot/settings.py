@@ -48,7 +48,7 @@ Entry for {} removed.\
 '''
 
     CANCEL_STATE_NONE = '''\
-Okay, but I wasn't doing anything anyways \
+Okay, I wasn't doing anything anyways \
 \u00af\u005c\u005f\u0028\u30c4\u0029\u005f\u002f\u00af\
 '''  # one shruggy boi
 
