@@ -6,8 +6,10 @@ from jobs import daily_jobs
 
 class Telebot:
     def __init__(self):
-        self.core = telegram.Bot(token=CONFIG['telegram']['api_key'])
-        self.updater = telegram.ext.Updater(bot=self.core)
+        # self.core = telegram.Bot(token=CONFIG['telegram']['api_key'])
+        # self.updater = telegram.ext.Updater(bot=self.core)
+        self.updater = telegram.ext.Updater(
+            token=CONFIG['telegram']['api_key'])
         self.dispatcher = self.updater.dispatcher
         self.job_queue = self.updater.job_queue
         for command in commands:
