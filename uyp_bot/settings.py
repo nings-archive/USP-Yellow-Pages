@@ -23,6 +23,9 @@ There doesn't seem to be anything here... \U0001f62d\
     ADD_GROUP_MOD_PROMPT = '''\
 Great! Send me the module code, e.g. <code>CS1101S</code>\
 '''
+    ADD_GROUP_PM_ONLY = '''\
+Please pm the bot for /add_group!\
+'''
 
     REMOVE_GROUP_NONE = '''\
 Groups can only be removed by the users that added them! \
@@ -30,6 +33,9 @@ It seems that you haven't added any groups...\
 '''
     REMOVE_GROUP_SOME = '''\
 Select a group to remove.\
+'''
+    REMOVE_GROUP_PM_ONLY = '''\
+Please pm the bot for /remove_group!\
 '''
 
     BUTTON_REMOVE_GROUP_OK = '''\
