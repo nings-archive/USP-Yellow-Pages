@@ -1,6 +1,6 @@
 import re, datetime
 from telegram import ParseMode
-import telegram.ext, sqlite3
+import sqlite3, telegram.ext, telegram.error
 import database
 from settings import Strings
 
@@ -16,10 +16,12 @@ REMOVE_ALLOWANCE = datetime.timedelta(days=60)
 db = database.Connection()
 
 def command_start(bot, update):
+    check_remove_ikey(bot, update)
     command_help(bot, update)
     db.add_user(get_user_id(update))
 
 def command_list_all(bot, update):
+    check_remove_ikey(bot, update)
     mods = db.get_mods_reg('')
     mod_strings = [ 
         Strings.LIST_ALL_SCHEMA.format(mod_code=mod[1], url=mod[0]) 
@@ -38,10 +40,12 @@ def command_list_all(bot, update):
             send(bot, update, message)
 
 def command_add_group(bot, update):
+    check_remove_ikey(bot, update)
     db.update_user(get_user_id(update), 'add_group@code', None, None)
     send(bot, update, Strings.ADD_GROUP_MOD_PROMPT)
 
 def command_remove_group(bot, update):
+    check_remove_ikey(bot, update)
     mods = db.get_users_mods(get_user_id(update))
     if mods == []:
         send(bot, update, Strings.REMOVE_GROUP_NONE)
@@ -65,14 +69,10 @@ def button_remove_group(bot, update):
         db.delete_mod(query)
         send(bot, update, Strings.BUTTON_REMOVE_GROUP_OK.format(query))
     # clean-up---delete inlinekeyboard, reset user state
-    keyboard_msg_id = int(db.get_user(get_user_id(update))[3])
-    bot.delete_message(
-        chat_id=get_chat_id(update), 
-        message_id=keyboard_msg_id
-    )
-    db.update_user(get_user_id(update), None, None, None)
+    check_remove_ikey(bot, update)
 
 def command_cancel(bot, update):
+    check_remove_ikey(bot, update)
     state = db.get_user(get_user_id(update))[1]
     if state is None:
         send(bot, update, Strings.CANCEL_STATE_NONE)
@@ -81,12 +81,15 @@ def command_cancel(bot, update):
         db.update_user(get_user_id(update), None, None, None)
 
 def command_help(bot, update):
+    check_remove_ikey(bot, update)
     send(bot, update, Strings.HELP_TEXT)
 
 def command_about(bot, update):
+    check_remove_ikey(bot, update)
     send(bot, update, Strings.ABOUT_TEXT)
 
 def response_handler(bot, update):
+    check_remove_ikey(bot, update)
     user_id, state, code_temp, url_temp = db.get_user(get_user_id(update))
     if state is None:
         pass
@@ -141,6 +144,23 @@ def send(bot, update, message):
         disable_web_page_preview=True,
         text=message
     )
+
+def check_remove_ikey(bot, update):
+    old_entry = db.get_user(get_user_id(update))
+    ikey_msg_id = old_entry[3]
+    if ikey_msg_id is not None:
+        try:
+            bot.delete_message(
+                chat_id=get_chat_id(update), 
+                message_id=int(ikey_msg_id)
+            )
+        except telegram.error.BadRequest:
+            # If this ever happens, and is uncaught, users will be
+            #     locked out forever
+            pass
+        new_entry = list(old_entry)
+        new_entry[3] = None
+        db.update_user(*new_entry)
 
 def get_chat_id(update):
     if update.message is not None:
