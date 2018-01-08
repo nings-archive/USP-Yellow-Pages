@@ -1,12 +1,10 @@
 import datetime, re
 import telegram
 from telegram import ParseMode
+import settings
 
 MOD_RE = '^[A-Z]{2,3}[0-9]{4}[A-Z]{0,1}$'
 URL_RE = '^(https://t.me/joinchat/)[a-zA-Z0-9]*$'
-
-RENEW_ALLOWANCE = datetime.timedelta(days=30)
-REMOVE_ALLOWANCE = datetime.timedelta(days=60)
 
 def restrict_to(pred, err_msg):
     '''Returns a decorator, i.e. decorator factory'''
@@ -44,15 +42,12 @@ def send(bot, update, message):
         text=message
     )
 
-def check_remove_ikey(bot, update, db):
-    old_entry = db.get_user(get_user_id(update))
+def check_remove_ikey(bot, user_id, db):
+    old_entry = db.get_user(user_id)
     ikey_msg_id = old_entry[3]
     if ikey_msg_id is not None:
         try:
-            bot.delete_message(
-                chat_id=get_chat_id(update), 
-                message_id=int(ikey_msg_id)
-            )
+            bot.delete_message(chat_id=user_id, message_id=int(ikey_msg_id))
         except telegram.error.BadRequest:
             # If this ever happens, and is uncaught, users will be
             #     locked out forever
@@ -78,9 +73,12 @@ def get_message_text(update):
 
 def get_dates():
     today = datetime.date.today()
-    renew = today + RENEW_ALLOWANCE
-    remove = today + REMOVE_ALLOWANCE
+    renew = today + settings.RENEW_ALLOWANCE
+    remove = today + settings.REMOVE_ALLOWANCE
     return renew.isoformat(), remove.isoformat()
+
+def get_date_from_str(datetime_str):
+    return datetime.datetime.strptime(datetime_str, '%Y-%m-%d').date()
 
 def sanitise_mod(mod):
     mod = mod.strip().upper()

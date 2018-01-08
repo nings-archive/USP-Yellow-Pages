@@ -1,3 +1,4 @@
+import datetime
 from os import path
 from configparser import ConfigParser
 
@@ -10,6 +11,10 @@ FILENAME_DB = path.join(VOLUME_DIR, 'uyp.db')
 
 CONFIG = ConfigParser()
 CONFIG.read(FILENAME_CONFIG)
+
+RENEW_ALLOWANCE = datetime.timedelta(days=90)
+REMOVE_ALLOWANCE = datetime.timedelta(days=97)
+
 
 class Strings:
     LIST_ALL_SCHEMA = '''\
@@ -95,3 +100,23 @@ Commands:
     ABOUT_TEXT = '''\
 Submit PR/issues at on <a href="{url}">github</a>, or contact @ningyuan.\
 '''.format(url='https://github.com/ningyuansg/USP-Yellow-Pages')
+
+    JOB_PROMPT_RENEW = '''\
+Hi! Your entry for <b>{}</b> in the directory is scheduled \
+for removal on {}, unless renewed (just click the button below!). \
+Alternatively, you may choose to delete the entry, if you wish.
+
+Entries in the directory have a lifetime of 90 days, after which you \
+will receive this message. There is a grace period of 7 days thereafter \
+before removal. This ensures that groups linked in this directory are \
+active---otherwise, more active groups can take its place.\
+'''
+    JOB_RENEW_OK = '''\
+Renew success!\
+'''
+    JOB_DELETE_OK = '''\
+Deleted!\
+'''
+    JOB_REMOVED = '''\
+Your entry <b>{}</b> has expired, and was removed from the directory\
+'''

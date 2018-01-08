@@ -1,5 +1,5 @@
 import sqlite3, telegram.ext, telegram.error
-import database, utils
+import database
 from settings import Strings
 from utils import *
 
@@ -8,12 +8,12 @@ MSG_CHAR_LIMIT = 3000  # max message len is 4096 UTF8 chars
 db = database.Connection()
 
 def command_start(bot, update):
-    check_remove_ikey(bot, update, db)
+    check_remove_ikey(bot, get_user_id(update), db)
     command_help(bot, update)
     db.add_user(get_user_id(update))
 
 def command_list_all(bot, update):
-    check_remove_ikey(bot, update, db)
+    check_remove_ikey(bot, get_user_id(update), db)
     mods = db.get_mods_reg('')
     mod_strings = [ 
         Strings.LIST_ALL_SCHEMA.format(mod_code=mod[1], url=mod[0]) 
@@ -32,16 +32,16 @@ def command_list_all(bot, update):
         for message in messages:
             send(bot, update, message)
 
-@utils.restrict_to(is_private_message, Strings.ADD_GROUP_PM_ONLY)
+@restrict_to(is_private_message, Strings.ADD_GROUP_PM_ONLY)
 def command_add_group(bot, update):
-    check_remove_ikey(bot, update, db)
+    check_remove_ikey(bot, get_user_id(update), db)
     db.update_user(get_user_id(update), 'add_group@code', None, None)
     send(bot, update, Strings.ADD_GROUP_MOD_PROMPT)
 
-@utils.restrict_to(is_private_message, Strings.REMOVE_GROUP_PM_ONLY)
-@utils.restrict_to(has_added_groups(db), Strings.REMOVE_GROUP_NONE)
+@restrict_to(is_private_message, Strings.REMOVE_GROUP_PM_ONLY)
+@restrict_to(has_added_groups(db), Strings.REMOVE_GROUP_NONE)
 def command_remove_group(bot, update):
-    check_remove_ikey(bot, update, db)
+    check_remove_ikey(bot, get_user_id(update), db)
     mods = db.get_users_mods(get_user_id(update))
     mod_strs = [ mod[1] for mod in mods ]
     msg = bot.send_message(
@@ -54,18 +54,8 @@ def command_remove_group(bot, update):
     db.update_user(get_user_id(update), 'remove_group@keyboard',
         None, str(msg.message_id))
 
-def button_remove_group(bot, update):
-    query = update.callback_query.data
-    if query == 'cancel':
-        pass
-    else:
-        db.delete_mod(query)
-        send(bot, update, Strings.BUTTON_REMOVE_GROUP_OK.format(query))
-    # clean-up---delete inlinekeyboard, reset user state
-    check_remove_ikey(bot, update, db)
-
 def command_cancel(bot, update):
-    check_remove_ikey(bot, update, db)
+    check_remove_ikey(bot, get_user_id(update), db)
     state = db.get_user(get_user_id(update))[1]
     if state is None:
         send(bot, update, Strings.CANCEL_STATE_NONE)
@@ -74,15 +64,15 @@ def command_cancel(bot, update):
         db.update_user(get_user_id(update), None, None, None)
 
 def command_help(bot, update):
-    check_remove_ikey(bot, update, db)
+    check_remove_ikey(bot, get_user_id(update), db)
     send(bot, update, Strings.HELP_TEXT)
 
 def command_about(bot, update):
-    check_remove_ikey(bot, update, db)
+    check_remove_ikey(bot, get_user_id(update), db)
     send(bot, update, Strings.ABOUT_TEXT)
 
 def response_handler(bot, update):
-    check_remove_ikey(bot, update, db)
+    check_remove_ikey(bot, get_user_id(update), db)
     user_id, state, code_temp, url_temp = db.get_user(get_user_id(update))
     if state is None:
         pass
@@ -125,7 +115,7 @@ commands = [
     ( 'help'         , command_help         ),
     ( 'about'        , command_about        )
 ]
+
 message_handlers = [
     ( telegram.ext.Filters.text, response_handler )
 ]
-callback_handler = button_remove_group

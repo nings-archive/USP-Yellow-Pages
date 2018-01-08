@@ -77,6 +77,23 @@ class Connection:
             )
         self.conn.commit()
 
+    def update_mod(self, url, code, renew_date, remove_date, admin):
+        self.curs.execute('SELECT * FROM mods WHERE code = ?;', (code,))
+        # if user not exist, create
+        if self.curs.fetchone() is None:
+            self.curs.execute('''
+                INSERT INTO mods VALUES (?, ?, ?, ?, ?);
+                ''', (url, code, renew_date, remove_date, admin)
+            )
+        else:
+            self.curs.execute('''
+                UPDATE mods SET 
+                url = ?, renew_date = ?, remove_date = ?, admin = ?
+                WHERE code = ?;''', 
+                (url, renew_date, remove_date, admin, code)
+            )
+        self.conn.commit()
+
     def add_mod(self, url, code, renew_date, remove_date, admin):
         self.curs.execute('''
             INSERT INTO mods VALUES (?, ?, ?, ?, ?);
