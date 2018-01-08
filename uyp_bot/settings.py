@@ -13,7 +13,7 @@ CONFIG.read(FILENAME_CONFIG)
 
 class Strings:
     LIST_ALL_SCHEMA = '''\
-<b>{mod_code}</b> (<a href="{url}">Invite link</a>)\
+<code>{mod_code:9}</code>(<a href="{url}">Invite link</a>)\
 '''
 
     LIST_ALL_IS_EMPTY = '''\

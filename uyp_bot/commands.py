@@ -3,7 +3,7 @@ import database, utils
 from settings import Strings
 from utils import *
 
-MSG_CHAR_LIMIT = 4000  # max message len is 4096 UTF8 chars
+MSG_CHAR_LIMIT = 3000  # max message len is 4096 UTF8 chars
 
 db = database.Connection()
 
@@ -22,6 +22,7 @@ def command_list_all(bot, update):
     if mod_strings == []:
         send(bot, update, Strings.LIST_ALL_IS_EMPTY)
     else:
+        mod_strings.sort()
         messages = [ mod_strings[0] ]
         for mod_string in mod_strings[1:]:
             if len(messages[-1]) < MSG_CHAR_LIMIT:
