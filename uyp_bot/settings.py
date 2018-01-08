@@ -29,7 +29,7 @@ There doesn't seem to be anything here... \U0001f62d\
 Great! Send me the module code, e.g. <code>CS1101S</code>\
 '''
     ADD_GROUP_PM_ONLY = '''\
-Please pm the bot for /add_group!\
+Please pm the bot for /add!\
 '''
 
     REMOVE_GROUP_NONE = '''\
@@ -40,7 +40,7 @@ It seems that you haven't added any groups...\
 Select a group to remove.\
 '''
     REMOVE_GROUP_PM_ONLY = '''\
-Please pm the bot for /remove_group!\
+Please pm the bot for /remove!\
 '''
 
     BUTTON_REMOVE_GROUP_OK = '''\
