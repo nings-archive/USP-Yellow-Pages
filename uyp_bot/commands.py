@@ -4,6 +4,8 @@ import telegram.ext, sqlite3
 import database
 from settings import Strings
 
+# TODO: all commands must remove past inlinequeries
+
 MOD_RE = '^[A-Z]{2,3}[0-9]{4}[A-Z]{0,1}$'
 URL_RE = '^(https://t.me/joinchat/)[a-zA-Z0-9]*$'
 
@@ -24,10 +26,7 @@ def command_list_all(bot, update):
         for mod in mods
     ]
     if mod_strings == []:
-        bot.send_message(
-            chat_id=get_chat_id(update),
-            text=Strings.LIST_ALL_IS_EMPTY
-        )
+        send(bot, update, Strings.LIST_ALL_IS_EMPTY)
     else:
         messages = [ mod_strings[0] ]
         for mod_string in mod_strings[1:]:
@@ -36,28 +35,16 @@ def command_list_all(bot, update):
             else:
                 messages.append(mod_string)
         for message in messages:
-            bot.send_message(
-                chat_id=get_chat_id(update),
-                parse_mode=ParseMode.HTML,
-                disable_web_page_preview=True,
-                text=message
-            )
+            send(bot, update, message)
 
 def command_add_group(bot, update):
     db.update_user(get_user_id(update), 'add_group@code', None, None)
-    bot.send_message(
-        chat_id=get_chat_id(update),
-        parse_mode=ParseMode.HTML,
-        text=Strings.ADD_GROUP_MOD_PROMPT
-    )
+    send(bot, update, Strings.ADD_GROUP_MOD_PROMPT)
 
 def command_remove_group(bot, update):
     mods = db.get_users_mods(get_user_id(update))
     if mods == []:
-        bot.send_message(
-            chat_id=get_chat_id(update),
-            text=Strings.REMOVE_GROUP_NONE
-        )
+        send(bot, update, Strings.REMOVE_GROUP_NONE)
     else:
         mod_strs = [ mod[1] for mod in mods ]
         msg = bot.send_message(
@@ -76,11 +63,8 @@ def button_remove_group(bot, update):
         pass
     else:
         db.delete_mod(query)
-        bot.send_message(
-            chat_id=get_chat_id(update),
-            text=Strings.BUTTON_REMOVE_GROUP_OK.format(query)
-        )
-    # clean-up
+        send(bot, update, Strings.BUTTON_REMOVE_GROUP_OK.format(query))
+    # clean-up---delete inlinekeyboard, reset user state
     keyboard_msg_id = int(db.get_user(get_user_id(update))[3])
     bot.delete_message(
         chat_id=get_chat_id(update), 
@@ -91,32 +75,16 @@ def button_remove_group(bot, update):
 def command_cancel(bot, update):
     state = db.get_user(get_user_id(update))[1]
     if state is None:
-        bot.send_message(
-            chat_id=get_chat_id(update),
-            text=Strings.CANCEL_STATE_NONE
-        )
+        send(bot, update, Strings.CANCEL_STATE_NONE)
     else:
-        bot.send_message(
-            chat_id=get_chat_id(update),
-            text=Strings.CANCEL_STATE_SOME
-        )
+        send(bot, update, Strings.CANCEL_STATE_SOME)
         db.update_user(get_user_id(update), None, None, None)
 
 def command_help(bot, update):
-    bot.send_message(
-        chat_id=get_chat_id(update),
-        parse_mode=ParseMode.HTML,
-        disable_web_page_preview=True,
-        text=Strings.HELP_TEXT
-    )
+    send(bot, update, Strings.HELP_TEXT)
 
 def command_about(bot, update):
-    bot.send_message(
-        chat_id=get_chat_id(update),
-        parse_mode=ParseMode.HTML,
-        disable_web_page_preview=True,
-        text=Strings.ABOUT_TEXT
-    )
+    send(bot, update, Strings.ABOUT_TEXT)
 
 def response_handler(bot, update):
     user_id, state, code_temp, url_temp = db.get_user(get_user_id(update))
@@ -128,17 +96,9 @@ def response_handler(bot, update):
                 get_user_id(update), 'add_group@url',
                 sanitise_mod(get_message_text(update)), None
             )
-            bot.send_message(
-                chat_id=get_chat_id(update),
-                parse_mode=ParseMode.HTML,
-                disable_web_page_preview=True,
-                text=Strings.RESPONSE_PROMPT_URL
-            )
+            send(bot, update, Strings.RESPONSE_PROMPT_URL)
         except ValueError:
-            bot.send_message(
-                chat_id=get_chat_id(update),
-                text=Strings.RESPONSE_INVALID_MOD
-            )
+            send(bot, update, Strings.RESPONSE_INVALID_MOD)
     elif state == 'add_group@url':
         try:
             url = sanitise_url(get_message_text(update))
@@ -147,30 +107,18 @@ def response_handler(bot, update):
             db.add_mod(
                 url, mod, renew_date, remove_date, get_user_id(update))
             db.update_user(get_user_id(update), None, None, None)
-            bot.send_message(
-                chat_id=get_chat_id(update), 
-                text=Strings.RESPONSE_SUCCESS
-            )
+            send(bot, update, Strings.RESPONSE_SUCCESS)
         except ValueError:
-            bot.send_message(
-                chat_id=get_chat_id(update),
-                text=Strings.RESPONSE_INVALID_URL
-            )
+            send(bot, update, Strings.RESPONSE_INVALID_URL)
         except sqlite3.IntegrityError as e:
             if 'code' in str(e):
-                bot.send_message(
-                    chat_id=get_chat_id(update),
-                    text=Strings.RESPONSE_ALREADY_MOD
-                )
+                send(bot, update, Strings.RESPONSE_ALREADY_MOD)
                 db.update_user(
                     get_user_id(update), 'add_group@code',
                     None, None
                 )
             elif 'url' in str(e):
-                bot.send_message(
-                    chat_id=get_chat_id(update),
-                    text=Strings.RESPONSE_ALREADY_URL
-                )
+                send(bot, update, Strings.RESPONSE_ALREADY_URL)
 
 commands = [
     ( 'start'        , command_start        ),
@@ -185,6 +133,14 @@ message_handlers = [
     ( telegram.ext.Filters.text, response_handler )
 ]
 callback_handler = button_remove_group
+
+def send(bot, update, message):
+    bot.send_message(
+        chat_id=get_chat_id(update),
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True,
+        text=message
+    )
 
 def get_chat_id(update):
     if update.message is not None:
