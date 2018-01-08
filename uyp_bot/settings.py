@@ -92,7 +92,7 @@ Commands:
 /list -- Lists all groups
 /add -- Add a group to the directory
 /remove -- Remove a group from the directory
-/cancel -- Cancels the current multi-stage command
+/cancel -- Cancels the current command
 /help -- Display this help message
 /about -- About this bot
 
