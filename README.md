@@ -1,4 +1,7 @@
 # USP Yellow Pages
+<p align="center">
+  <img width="300" height="300" src="docs/profile_circle.png">
+</p>
 The **USP Yellow Pages** aims to provide a central directory of telegram groups for the discussion of NUS modules, for the USP community. You can find this bot on telegram [@uyp_bot](https://t.me/uyp_bot). 
 
 ## Contributing
