@@ -104,7 +104,7 @@ its place.\
 '''
 
     ABOUT_TEXT = '''\
-<a href="{lic}">Provide without warranty.</a> \
+<a href="{lic}">Provided without warranty</a>. \
 Submit PR/issues at on <a href="{ghb}">github</a>, or contact @ningyuan.\
 '''.format(
     lic='https://github.com/ningyuansg/USP-Yellow-Pages/blob/master/LICENSE',
