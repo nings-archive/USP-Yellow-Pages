@@ -107,13 +107,13 @@ def response_handler(bot, update):
                 send(bot, update, Strings.RESPONSE_ALREADY_URL)
 
 commands = [
-    ( 'start'        , command_start        ),
-    ( 'list_all'     , command_list_all     ),
-    ( 'add_group'    , command_add_group    ),
-    ( 'remove_group' , command_remove_group ),
-    ( 'cancel'       , command_cancel       ),
-    ( 'help'         , command_help         ),
-    ( 'about'        , command_about        )
+    ( 'start'  , command_start        ),
+    ( 'list'   , command_list_all     ),
+    ( 'add'    , command_add_group    ),
+    ( 'remove' , command_remove_group ),
+    ( 'cancel' , command_cancel       ),
+    ( 'help'   , command_help         ),
+    ( 'about'  , command_about        )
 ]
 
 message_handlers = [

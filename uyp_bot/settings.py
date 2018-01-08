@@ -12,8 +12,8 @@ FILENAME_DB = path.join(VOLUME_DIR, 'uyp.db')
 CONFIG = ConfigParser()
 CONFIG.read(FILENAME_CONFIG)
 
-RENEW_ALLOWANCE = datetime.timedelta(days=90)
-REMOVE_ALLOWANCE = datetime.timedelta(days=97)
+RENEW_ALLOWANCE = datetime.timedelta(days=60)
+REMOVE_ALLOWANCE = datetime.timedelta(days=67)
 
 
 class Strings:
@@ -89,24 +89,33 @@ Success!\
 <b>USP Yellow Pages</b> is a directory for USP telegram study groups.
 
 Commands:
-/list_all -- Lists all groups
-/add_group -- Add a group to the directory
-/remove_group -- Remove a group from the directory
+/list -- Lists all groups
+/add -- Add a group to the directory
+/remove -- Remove a group from the directory
 /cancel -- Cancels the current multi-stage command
 /help -- Display this help message
-/about -- About this bot\
+/about -- About this bot
+
+Entries in the directory have a lifetime of 60 days, after which you \
+will receive a prompt for its renewal. There is a grace period of 7 \
+days thereafter before removal. This ensures that groups linked in \
+this directory are active---otherwise, more active groups can take \
+its place.\
 '''
 
     ABOUT_TEXT = '''\
-Submit PR/issues at on <a href="{url}">github</a>, or contact @ningyuan.\
-'''.format(url='https://github.com/ningyuansg/USP-Yellow-Pages')
+<a href="{lic}">Provide without warranty.</a> \
+Submit PR/issues at on <a href="{ghb}">github</a>, or contact @ningyuan.\
+'''.format(
+    lic='https://github.com/ningyuansg/USP-Yellow-Pages/blob/master/LICENSE',
+    ghb='https://github.com/ningyuansg/USP-Yellow-Pages')
 
     JOB_PROMPT_RENEW = '''\
 Hi! Your entry for <b>{}</b> in the directory is scheduled \
 for removal on {}, unless renewed (just click the button below!). \
 Alternatively, you may choose to delete the entry, if you wish.
 
-Entries in the directory have a lifetime of 90 days, after which you \
+Entries in the directory have a lifetime of 60 days, after which you \
 will receive this message. There is a grace period of 7 days thereafter \
 before removal. This ensures that groups linked in this directory are \
 active---otherwise, more active groups can take its place.\
