@@ -70,12 +70,12 @@ class Connection:
                 INSERT INTO users VALUES (?, ?, ?, ?);
                 ''', (user, state, code_temp, msg_temp)
             )
-            self.conn.commit()
         else:
             self.curs.execute('''
                 UPDATE users SET state = ?, code_temp = ?, msg_temp = ?
                 WHERE id = ?;''', (state, code_temp, msg_temp, user)
             )
+        self.conn.commit()
 
     def add_mod(self, url, code, renew_date, remove_date, admin):
         self.curs.execute('''
