@@ -12,9 +12,9 @@ FILENAME_DB = path.join(VOLUME_DIR, 'uyp.db')
 CONFIG = ConfigParser()
 CONFIG.read(FILENAME_CONFIG)
 
+JOB_EXECUTE_TIME = datetime.time(hour=13, minute=0)
 RENEW_ALLOWANCE = datetime.timedelta(days=60)
 REMOVE_ALLOWANCE = datetime.timedelta(days=67)
-
 
 class Strings:
     LIST_ALL_SCHEMA = '''\

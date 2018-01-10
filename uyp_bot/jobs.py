@@ -4,9 +4,6 @@ import database
 from utils import *
 from settings import Strings
 
-UTF_PLUS_8 = datetime.timedelta(hours=8)
-EXECUTE_TIME = datetime.time(hour=4, minute=38)
-
 db = database.Connection()
 
 def job_prompt_renew(bot, job):
@@ -52,6 +49,6 @@ def job_remove(bot, job):
         )
 
 daily_jobs = [
-    {'callback': job_prompt_renew, 'time': EXECUTE_TIME},
-    {'callback': job_remove,       'time': EXECUTE_TIME}
+    {'callback': job_prompt_renew, 'time': settings.JOB_EXECUTE_TIME},
+    {'callback': job_remove,       'time': settings.JOB_EXECUTE_TIME}
 ]
