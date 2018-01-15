@@ -58,7 +58,10 @@ Okie, cancelled!\
 
     RESPONSE_PROMPT_URL = '''\
 Now, send me the <a href="{invite_url}">invite link</a>. \
-It should look something like this: {sample_url}\
+It should look something like this: {sample_url}
+
+<i>The group must be a supergroup. The admin can find the invite link \
+by going to the gear icon -> group info.</i>
 '''.format(
         invite_url='https://telegram.org/blog/invite-links',
         sample_url='https://t.me/joinchat/BLAivEHRggkWpKez7GZ8hw'
